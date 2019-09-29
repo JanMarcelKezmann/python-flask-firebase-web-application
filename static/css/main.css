@@ -1,0 +1,166 @@
+body{
+    padding: 0px;
+    margin: 0px;
+    color: #222;
+    font-family: "Noto Sans HK";
+    position: relative;
+  
+}
+
+/* color values of checkyourself image 
+#DD4839 or rgb(221, 72, 57)
+#EEB584 or rgb(238, 181, 132)*/
+nav{
+    display: flex;
+    justify-content: space-between;
+    background-color: rgba(255, 181, 97, 0.6);
+    width: 100%;
+    top: 0px;
+    z-index: 99;
+    font-size: 1rem;
+    
+}
+
+nav ul{
+    padding: 10px 0px;
+    margin: 0px;
+}
+
+nav ul li{
+    list-style: none;
+    display: inline-block;
+    margin: 0 10px;
+    color: #C23C42;
+}
+
+nav ul li a{
+    text-decoration: none;
+    display: block;
+    color: #C23C42;
+    text-transform: lowercase;
+    font-size: 16px;
+}
+
+nav ul:first-of-type li a {
+    color: #C23C42;
+    font-weight: bold;
+}
+
+nav ul li .user-email {
+    text-decoration: none;
+    display: block;
+    color: #C23C42;
+    text-transform: lowercase;
+    font-size: 12px;
+    font-weight: bold;
+    padding-right: 5%;
+}
+
+header img {
+    width: 100%;
+}
+
+main {
+   
+    width: 95%;
+    margin: 100px auto;
+    padding-bottom: 100px;
+}
+
+form {
+    width: 50%;
+    margin: 0 auto;
+}
+
+form * {
+    display: block;
+}
+
+form a, form textarea{
+    background: none;
+    width: 100%;
+    font-family: "Noto Sans HK";
+    border: none;
+    border-bottom: 1px solid #666;
+    padding: 10px 0px;
+    margin: 10px 0px;
+}
+
+form a[type="submit"] {
+    border: none;
+    width: 10%;
+    min-width: 120px;
+    background: #EECDA3;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #EF629F, #EECDA3);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #EF629F, #EECDA3); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    -webkit-box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
+    box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #fff;
+}
+
+form input, form textarea{
+    background: none;
+    width: 100%;
+    font-family: "Noto Sans HK";
+    border: none;
+    border-bottom: 1px solid #666;
+    padding: 10px 0px;
+    margin: 10px 0px;
+}
+
+form input[type="submit"] {
+    border: none;
+    width: 10%;
+    min-width: 120px;
+    background: #EECDA3;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #EF629F, #EECDA3);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #EF629F, #EECDA3); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    -webkit-box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
+    box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #fff;
+}
+input[type="submit"].delete {
+    margin-top: 150px;
+    background: none;
+    box-shadow: none;
+    color: #222;
+    border: 1px solid #222;
+}
+
+.error {
+    color: rgb(255, 74, 74);
+    font-style: italic;
+}
+
+.single {
+    width: 50%;
+    margin: 0 auto;
+}
+.single .title {
+    font-size: 3rem;
+    margin: 0px;
+    padding: 0px;
+}
+
+.wrapper .btn-predict{
+  position: center;
+  margin: 0px 25% 0px;
+  padding: 12px 26px;
+  background: #E0584B;
+  color: #fff;
+  font-size: 1em;
+  transition: all .4s;
+  cursor: pointer;
+  border-radius: 10%;
+}
+
+.wrapper .´btn-predict:hover{
+  background: #DD4839;
+  color: #F5F5F5;
+}
