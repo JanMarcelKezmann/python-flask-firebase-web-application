@@ -1,0 +1,11 @@
+pyrebase
+numpy
+tensorflow
+keras
+flask
+flask_dropzone
+werkezug
+gevent
+stripe
+functools
+re
