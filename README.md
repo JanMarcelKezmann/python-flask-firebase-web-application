@@ -37,13 +37,8 @@ Make sure you have the following installed:
 
 Python 3.6 is supported and tested.
 
-#### For Linux
+#### For Linux & Windows
 ```shell
-python app.py
-```
-
-#### For Windows
-```cmd
 python app.py
 ```
 
