@@ -9,3 +9,5 @@ gevent
 stripe
 functools
 re
+h5py
+pillow
