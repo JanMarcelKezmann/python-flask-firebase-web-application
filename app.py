@@ -1,0 +1,266 @@
+from __future__ import division, print_function
+
+import warnings
+warnings.filterwarnings('ignore')
+
+from functools import wraps
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+import re
+import sys
+import glob
+# coming from pyrebase4
+import pyrebase
+import numpy as np
+import tensorflow as tf
+
+# Keras
+from keras.applications.imagenet_utils import preprocess_input, decode_predictions
+from keras.models import load_model
+from keras.preprocessing import image
+from keras.applications.resnet50 import ResNet50
+
+# Flask
+from flask_dropzone import Dropzone
+from flask import Flask, render_template, redirect, request, url_for, session
+from werkzeug.utils import secure_filename
+from gevent.pywsgi import WSGIServer
+
+# Stripe for payment
+import stripe
+
+
+#firebase config
+config = {
+  "apiKey": "AIzaSyBFODsG2_9uQuWF1d7DdbNO5Y3d4nZulsA",
+  "authDomain": "my-free-ai-classifier.firebaseapp.com",
+  "databaseURL": "https://my-free-ai-classifier.firebaseio.com",
+  "projectId": "my-free-ai-classifier",
+  "storageBucket": "my-free-ai-classifier.appspot.com",
+  "messagingSenderId": "627427593802",
+  "appId": "1:627427593802:web:afd77103dbb9bf6ff8e0b3",
+  "measurementId": "G-EM8S80GF9Z"
+}
+
+#init firebase
+firebase = pyrebase.initialize_app(config)
+#auth instance
+auth = firebase.auth()
+#real time database instance
+db = firebase.database();
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+#new instance of Flask
+app = Flask(__name__)
+#secret key for the session
+app.secret_key = os.urandom(24)
+
+app.config.update(
+    UPLOADED_PATH=os.path.join(basedir, 'uploads'),
+    # Flask-Dropzone config:
+    DROPZONE_ALLOWED_FILE_TYPE='image',
+    DROPZONE_MAX_FILE_SIZE=1,
+    DROPZONE_MAX_FILES=1,
+    DROPZONE_UPLOAD_ON_CLICK=True
+)
+
+pub_key = "pk_test_tqCJtQ9f6ouxRfOkIUPDCvmO00q8KBcx76"
+secret_key = 'sk_test_EdDZTBF0gjSY7BSRpxJyoVc100SlEO9YWZ'
+stripe.api_key = secret_key
+
+
+
+dropzone = Dropzone(app)
+
+# Initializing Model for image classification
+model = ResNet50(weights="imagenet")
+
+graph = tf.get_default_graph()
+
+#decorator to protect routes
+def isAuthenticated(f):
+  @wraps(f)
+  def decorated_function(*args, **kwargs):
+      #check for the variable that pyrebase creates
+      if not auth.current_user != None:
+          return redirect(url_for('login'))
+      return f(*args, **kwargs)
+  return decorated_function
+
+def isNotLoggedIn(f):
+  @wraps(f)
+  def decorated_function2(*args, **kwargs):
+    if auth.current_user != None:
+      return redirect("/", message="Log out to sign up with a new account")
+    return f(*args, **kwargs)
+  return decorated_function2
+
+def model_predict(img_path, model):
+  img = image.load_img(img_path, target_size=(224, 224))
+
+  # Preprocessing the image
+  x = image.img_to_array(img)
+  # x = np.true_divide(x, 255)
+  x = np.expand_dims(x, axis=0)
+  # Be careful how your trained model deals with the input
+  # otherwise, it won't make correct prediction!
+  x = preprocess_input(x, mode='caffe')
+
+  preds = model.predict(x)
+  return preds
+
+#index route / Main Page
+@app.route("/", methods=["POST", "GET"])
+def index():
+  if auth.current_user != None:
+    if request.method == "POST":
+      for key, f in request.files.items():
+        if key.startswith("file"):
+          f.save(os.path.join(app.config["UPLOADED_PATH"], f.filename))
+
+    session_username = db.child("users").child(auth.current_user["localId"]).child("username").get().val()
+
+    return render_template("index.html", session_username=session_username)
+  return render_template("index.html")
+#signup route
+@app.route("/signup", methods=["GET", "POST"])
+@isNotLoggedIn
+def signup():
+  if request.method == "POST":
+    #get the request form data
+    email = request.form["email"]
+    password = request.form["password"]
+    username = request.form["username"]
+    try:
+      #create the user
+      auth.create_user_with_email_and_password(email, password);
+      #login the user right away
+      user = auth.sign_in_with_email_and_password(email, password)   
+      #session
+      user_id = user['idToken']
+      user_email = email
+      session['usr'] = user_id
+      session["email"] = user_email
+
+      return redirect("/") 
+    except:
+      return render_template("signup.html", message="Email is already taken or password has less than 6 letters" )  
+
+    return render_template("signup.html")
+
+
+#login route
+@app.route("/login", methods=["GET", "POST"])
+def login():
+  if request.method == "POST":
+    #get the request data
+    email = request.form["email"]
+    password = request.form["password"]
+    try:
+      #login the user
+      user = auth.sign_in_with_email_and_password(email, password)
+      #set the session
+      user_id = user['idToken']
+      user_email = email
+      session['usr'] = user_id
+      session["email"] = user_email
+
+      return redirect("/")
+    except:
+      return render_template("login.html", message="Wrong Credentials")
+  return render_template("login.html")
+
+#logout route
+@app.route("/logout")
+def logout():
+    #remove the token setting the user to None
+    auth.current_user = None
+    #also remove the session
+    #session['usr'] = ""
+    #session["email"] = ""
+    session.clear()
+    return redirect("/");
+
+@app.route("/profile", methods=["POST", "GET"])
+@isAuthenticated
+def profile():
+  user_data = db.child("users").child(auth.current_user["localId"]).get().val()
+  if request.method == "POST":
+    #get the request form data
+    # email = request.form["email"]
+    firstname = request.form["firstname"]
+    lastname = request.form["lastname"]
+    username = request.form["username"]
+
+    user_data = {"firstname": firstname, "lastname": lastname, "username": username, "creditpoints": 0}
+    db.child("users").child(auth.current_user["localId"]).update(user_data)
+
+    # next line could in theory be forgotten
+    user_data = db.child("users").child(auth.current_user["localId"]).get().val()
+
+    return render_template("profile.html", user_infos=user_data)
+  
+  return render_template("profile.html", user_infos=user_data)
+
+@app.route("/imageclassification", methods=["GET", "POST"])
+@isAuthenticated
+def imageclassification():
+  creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
+  session_username = db.child("users").child(auth.current_user["localId"]).child("username").get().val()
+  if creditpoints == 0:
+    return render_template("image.html", pub_key=pub_key, creditpoints=creditpoints, session_username=session_username, not_paid_yet="No creditpoints")
+  
+  return render_template("image.html", pub_key=pub_key, creditpoints=creditpoints, session_username=session_username)
+
+@app.route("/pay", methods=["POST"])
+def pay():
+  customer = stripe.Customer.create(email=request.form["stripeEmail"], source=request.form["stripeToken"])
+ 
+  charge = stripe.Charge.create(
+    customer=customer.id,
+    amount=1697,
+    currency="eur",
+    description="For Classification"
+    )
+
+  old_creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
+  new_creditpoints = int(old_creditpoints) + 1
+  db.child("users").child(auth.current_user["localId"]).update({"creditpoints": new_creditpoints})
+  ##put a redirect in here where file is transmitted to /predict -> upload() so it must not be uploaded twice
+  return render_template("/image.html", creditpoints=new_creditpoints)
+
+@app.route("/predict", methods=["GET", "POST"])
+def upload():
+  global graph
+  with graph.as_default():
+    if request.method == 'POST':
+      # Get the file from post request
+      f = request.files['image']
+
+      # Save the file to ./uploads
+      basepath = os.path.dirname(__file__)
+      file_path = os.path.join(basepath, 'uploads', secure_filename(f.filename))
+      f.save(file_path)
+
+      # Make prediction
+      preds = model_predict(file_path, model)
+
+      # Process your result for human
+      # pred_class = preds.argmax(axis=-1)            # Simple argmax
+      pred_class = decode_predictions(preds, top=1)   # ImageNet Decode
+      result = str(pred_class[0][0][1])               # Convert to string
+      
+      # subtract one creditpoint
+      old_creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
+      new_creditpoints = int(old_creditpoints) - 1
+      db.child("users").child(auth.current_user["localId"]).update({"creditpoints": new_creditpoints})
+  
+      return result
+    return None
+
+#run the main script
+if __name__ == "__main__":
+  # app.run(debug=True)
+    # Serve the app with gevent
+  http_server = WSGIServer(('0.0.0.0', 5000), app)
+  http_server.serve_forever()
