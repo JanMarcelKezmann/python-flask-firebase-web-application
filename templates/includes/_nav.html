@@ -1,0 +1,28 @@
+<nav>
+    <ul>
+        <li><a href="/">CheckYourself</a></li>
+    </ul>
+    <ul>
+        <li><a href="/">Home</a></li>
+
+        {% if session["usr"] %}
+        <li><a href="/imageclassification">Upload Image</a></li>
+        {% endif %}
+
+        {% if not session["usr"] %}
+        <li><a href="/signup">SignUp</a></li>
+        <li><a href="/login">Login</a></li>
+        {% endif %}
+
+        {% if session["usr"] %}
+        <li><a href="/logout">Logout</a></li>
+        <li><a href="/profile">Profile</a></li>
+        {% endif %}
+       
+        {% if session_username %}
+        <li class="user-email">{{ session_username }} </li>
+        {% endif %}
+
+    </ul>
+   
+</nav>
