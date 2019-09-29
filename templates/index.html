@@ -1,0 +1,43 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+
+	<title>CheckYourself</title>
+	<link href="https://fonts.googleapis.com/css?family=Noto+Sans+HK&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+	{{ dropzone.load_css() }}
+    {{ dropzone.style('border: 2px dashed #DD4839; margin: 20px 25% 20px; min-height: 200px;') }}
+
+</head>
+
+<body>
+ 
+	 <!-- include the nav -->
+	 {% include "includes/_nav.html" %}
+
+
+	 <header>
+	  
+	    <img src="../static/assets/CheckYourself2.png"/>
+	 
+	</header>
+
+    <form>
+        <a align-text: center href="signup" type="submit">SignUp</a>
+        <a href="login" type="submit">Login</a>
+    </form>
+
+    {{ dropzone.create("/") }}
+    <div class="wrapper">
+		<button id="upload" type="button" class="btn-predict">Upload</button>
+	</div>
+	{{ dropzone.load_js() }}
+	{{ dropzone.config(custom_init='dz = this;document.getElementById("upload").addEventListener("click", function handler(e) {dz.processQueue();});',
+                     custom_options='autoProcessQueue: false, addRemoveLinks: true, parallelUploads: 1,') }}
+    
+
+</body>
+</html>

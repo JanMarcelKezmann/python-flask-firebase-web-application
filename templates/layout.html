@@ -1,0 +1,32 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>CheckYourself</title>
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+HK&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+</head>
+
+<body>
+ 
+ <!-- include the nav -->
+ {% include "includes/_nav.html" %}
+
+
+ <header>
+  
+  <img src="../static/assets/CheckYourself2.png"/>
+ 
+</header>
+
+ <main>
+    {% block content %}
+    {% endblock %}     
+ </main>
+
+<script src="./path/to/dropzone.js"></script>
+</body>
+</html>

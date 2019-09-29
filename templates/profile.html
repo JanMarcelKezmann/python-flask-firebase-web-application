@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <h2>Profile</h2>
+    	
+    <table>
+		<tr>
+			<th>Keys</th>
+			<th>Values</th>
+		</tr>
+    	{% if user_infos %}
+    		{% for key, value in user_infos.items() %}
+				<tr>
+					<td>{{ key }}</td>
+					<td>{{ value }}</td>
+				</tr>
+    		{% endfor %}
+    	{% endif %}
+	</table>
+
+    <form method="POST" action="/profile">
+
+        <h2>Edit your profile information.</h2>
+        
+        <!-- email should be handled with a noreply email -->
+        <!-- <div class="form-control">
+            <label for="email">Email:</label>
+            <input type="email" name="email" placeholder="Email">
+        </div> -->
+        <div class="form-control">
+            <label for="text">Firstame:</label>
+            <input type="text" name="firstname" placeholder="Firstname">
+        </div>
+        <div class="form-control">
+            <label for="text">Lastname:</label>
+            <input type="text" name="lastname" placeholder="Lastname">
+        </div>
+        <div class="form-control">
+            <label for="text">Username:</label>
+            <input type="text" name="username" placeholder="Username">
+        </div>
+        <input type="submit" value="Save Changes">
+    </form>
+
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+  
+ 
+
+    <form method="POST" action="/signup">
+
+        <h2>Signup</h2>
+        
+        <div class="form-control">
+            <label for="email">Email:</label>
+            <input type="email" name="email" placeholder="Email">
+        </div>
+        <div class="form-control">
+            <label for="password">Password:</label>
+            <input type="password" name="password" placeholder="Password">
+        </div>
+        <div class="form-control">
+            <label for="username">User Name:</label>
+            <input type="username" name="username" placeholder="Username">
+        </div>
+        <input type="submit" value="Sign Up">
+    </form>
+
+
+{% endblock %}
