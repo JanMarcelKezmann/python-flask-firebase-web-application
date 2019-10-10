@@ -32,6 +32,9 @@ Make sure you have the following installed:
 - flask_dropzone
 - pyrebase
 - numpy
+- stripe
+- paypalrestsdk
+- werkzeug
 
 ### Run with Python (3.6)
 
