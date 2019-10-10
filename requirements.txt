@@ -11,3 +11,4 @@ functools
 re
 h5py
 pillow
+paypalrestsdk
