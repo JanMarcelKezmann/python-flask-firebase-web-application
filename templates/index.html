@@ -3,41 +3,88 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
 	<title>CheckYourself</title>
+
 	<link href="https://fonts.googleapis.com/css?family=Noto+Sans+HK&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-
-	{{ dropzone.load_css() }}
-    {{ dropzone.style('border: 2px dashed #DD4839; margin: 20px 25% 20px; min-height: 200px;') }}
 
 </head>
 
 <body>
  
-	 <!-- include the nav -->
+         <!-- include the nav -->
 	 {% include "includes/_nav.html" %}
 
 
-	 <header>
-	  
-	    <img src="../static/assets/CheckYourself2.png"/>
-	 
+	<header>
+		<div class="wrapper">
+		<!-- <div class="image-container"></div> -->
+			<img src="../static/assets/CheckYourself3.PNG" class="image-container" alt="">
+		</div>
 	</header>
+	
+    {% if not user_not_authenticated %}
 
-    <form>
-        <a align-text: center href="signup" type="submit">SignUp</a>
-        <a href="login" type="submit">Login</a>
-    </form>
-
-    {{ dropzone.create("/") }}
     <div class="wrapper">
-		<button id="upload" type="button" class="btn-predict">Upload</button>
-	</div>
-	{{ dropzone.load_js() }}
-	{{ dropzone.config(custom_init='dz = this;document.getElementById("upload").addEventListener("click", function handler(e) {dz.processQueue();});',
-                     custom_options='autoProcessQueue: false, addRemoveLinks: true, parallelUploads: 1,') }}
-    
+    	<h3 class="texts">Get your first creditpoints for Diagnosis</h3>
+
+    	<h4 class="texts">For only 16.97€</h4>
+
+        <form class="paybutton" action="{{ url_for('pay') }}" method="POST">
+            <script 
+                src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+                data-key="{{ pub_key }}"
+                data-amount="1697"
+                data-name="Demo Payment"
+                data-description="Widget"
+                data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
+                data-locale="auto">
+            </script>
+        </form>
+    </div>
+
+
+    <div class="wrapper">		
+		<form>
+	        <div class="paybutton" id="paypal-button"></div>
+	    </form>
+    </div>
+
+    <script src="https://www.paypalobjects.com/api/checkout.js"></script>
+
+	<script>
+	    var CREATE_PAYMENT_URL  = 'http://127.0.0.1:5000/payment';
+	    var EXECUTE_PAYMENT_URL = 'http://127.0.0.1:5000/execute';
+	    paypal.Button.render({
+	    	style: {
+				color:   'blue',
+				shape:   'rect',
+				label:   'pay'
+			},
+	        env: 'sandbox', // Or 'sandbox'
+	        commit: true, // Show a 'Pay Now' button
+	        payment: function() {
+	            return paypal.request.post(CREATE_PAYMENT_URL).then(function(data) {
+	                return data.paymentID;
+	            });
+	        },
+	        onAuthorize: function(data) {
+	            return paypal.request.post(EXECUTE_PAYMENT_URL, {
+	                paymentID: data.paymentID,
+	                payerID:   data.payerID
+	            }).then(function(res) {
+	                console.log(res.success)
+	                // The payment is complete!
+	                // You can now show a confirmation message to the customer
+	            });
+	        }
+	    }, '#paypal-button');
+	</script>
+
+	{% endif %}
 
 </body>
 </html>
