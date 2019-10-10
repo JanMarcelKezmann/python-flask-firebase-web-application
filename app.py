@@ -8,11 +8,12 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 import re
 import sys
-import glob
 # coming from pyrebase4
 import pyrebase
 import numpy as np
 import tensorflow as tf
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR) # suppress keep_dims warnings
+
 
 # Keras
 from keras.applications.imagenet_utils import preprocess_input, decode_predictions
@@ -22,13 +23,13 @@ from keras.applications.resnet50 import ResNet50
 
 # Flask
 from flask_dropzone import Dropzone
-from flask import Flask, render_template, redirect, request, url_for, session
+from flask import Flask, render_template, jsonify, redirect, request, url_for, session
 from werkzeug.utils import secure_filename
 from gevent.pywsgi import WSGIServer
 
 # Stripe for payment
 import stripe
-
+import paypalrestsdk
 
 #firebase config
 config = {
@@ -48,6 +49,8 @@ firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
 #real time database instance
 db = firebase.database();
+#storage
+storage = firebase.storage()
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 #new instance of Flask
@@ -68,6 +71,11 @@ pub_key = "pk_test_tqCJtQ9f6ouxRfOkIUPDCvmO00q8KBcx76"
 secret_key = 'sk_test_EdDZTBF0gjSY7BSRpxJyoVc100SlEO9YWZ'
 stripe.api_key = secret_key
 
+paypalrestsdk.configure({
+  "mode": "sandbox", # sandbox or live
+  "client_id": "ASF4dbyuop0frtNbQ6OcL9SYKWVc8SapXAd_bs2bwUVa848ukQ7L6h-Rc0tHtGn-UnaS-09jdPtQzseA",
+  "client_secret": "EDl_r9g1frB4FYspNONTI-pEtc93RuSJWyIkTxFZqCYbB8eE07nnd7NBjUVu445bOonZqPVcaTIA7aYD"
+  })
 
 
 dropzone = Dropzone(app)
@@ -87,13 +95,13 @@ def isAuthenticated(f):
       return f(*args, **kwargs)
   return decorated_function
 
-def isNotLoggedIn(f):
-  @wraps(f)
-  def decorated_function2(*args, **kwargs):
-    if auth.current_user != None:
-      return redirect("/", message="Log out to sign up with a new account")
-    return f(*args, **kwargs)
-  return decorated_function2
+# def isNotLoggedIn(f):
+#   @wraps(f)
+#   def decorated_function2(*args, **kwargs):
+#     if auth.current_user != None:
+#       return redirect("/", message="Log out to sign up with a new account")
+#     return f(*args, **kwargs)
+#   return decorated_function2
 
 def model_predict(img_path, model):
   img = image.load_img(img_path, target_size=(224, 224))
@@ -113,18 +121,19 @@ def model_predict(img_path, model):
 @app.route("/", methods=["POST", "GET"])
 def index():
   if auth.current_user != None:
-    if request.method == "POST":
-      for key, f in request.files.items():
-        if key.startswith("file"):
-          f.save(os.path.join(app.config["UPLOADED_PATH"], f.filename))
-
+    # if request.method == "POST":
+    #   for key, f in request.files.items():
+    #     if key.startswith("file"):
+    #       f.save(os.path.join(app.config["UPLOADED_PATH"], f.filename))
+    #       file_place = "uploads/" + f.filename
+    #       storage.child(auth.current_user["localId"]).child("images").child(f.filename).put(file_place, auth.current_user["idToken"])
     session_username = db.child("users").child(auth.current_user["localId"]).child("username").get().val()
-
-    return render_template("index.html", session_username=session_username)
-  return render_template("index.html")
+    
+    return render_template("index.html", pub_key=pub_key, session_username=session_username)
+  return render_template("index.html", user_not_authenticated=True)
 #signup route
 @app.route("/signup", methods=["GET", "POST"])
-@isNotLoggedIn
+# @isNotLoggedIn
 def signup():
   if request.method == "POST":
     #get the request form data
@@ -147,6 +156,7 @@ def signup():
       return render_template("signup.html", message="Email is already taken or password has less than 6 letters" )  
 
     return render_template("signup.html")
+  return render_template("signup.html")
 
 
 #login route
@@ -175,9 +185,7 @@ def login():
 def logout():
     #remove the token setting the user to None
     auth.current_user = None
-    #also remove the session
-    #session['usr'] = ""
-    #session["email"] = ""
+
     session.clear()
     return redirect("/");
 
@@ -185,6 +193,7 @@ def logout():
 @isAuthenticated
 def profile():
   user_data = db.child("users").child(auth.current_user["localId"]).get().val()
+  # Version 1
   if request.method == "POST":
     #get the request form data
     # email = request.form["email"]
@@ -192,42 +201,108 @@ def profile():
     lastname = request.form["lastname"]
     username = request.form["username"]
 
+    # Check if a change was made
+    # If no (input field is empty) than overwrite the update info with the previous information
+    # Do this for every asked information
+    # if email == "":
+    #   email = user_data["email"]
+    # elif email != "":
+    #   auth.setAccountInfo
+    if firstname == "":
+      firstname = user_data["firstname"]
+    if lastname == "":
+      lastname = user_data["lastname"]
+    if username == "":
+      username = user_data["username"]
+
     user_data = {"firstname": firstname, "lastname": lastname, "username": username, "creditpoints": 0}
     db.child("users").child(auth.current_user["localId"]).update(user_data)
 
     # next line could in theory be forgotten
     user_data = db.child("users").child(auth.current_user["localId"]).get().val()
-
-    return render_template("profile.html", user_infos=user_data)
-  
-  return render_template("profile.html", user_infos=user_data)
+    return render_template("profile.html", user_infos=user_data, session_username=username)
+  return render_template("profile.html", user_infos=user_data, session_username=user_data["username"])
 
 @app.route("/imageclassification", methods=["GET", "POST"])
 @isAuthenticated
 def imageclassification():
   creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
   session_username = db.child("users").child(auth.current_user["localId"]).child("username").get().val()
-  if creditpoints == 0:
-    return render_template("image.html", pub_key=pub_key, creditpoints=creditpoints, session_username=session_username, not_paid_yet="No creditpoints")
+  # if creditpoints == 0:
+  #   return render_template("image.html", pub_key=pub_key, creditpoints=creditpoints, session_username=session_username)
   
   return render_template("image.html", pub_key=pub_key, creditpoints=creditpoints, session_username=session_username)
 
 @app.route("/pay", methods=["POST"])
+@isAuthenticated
 def pay():
   customer = stripe.Customer.create(email=request.form["stripeEmail"], source=request.form["stripeToken"])
- 
+  
   charge = stripe.Charge.create(
     customer=customer.id,
     amount=1697,
     currency="eur",
-    description="For Classification"
+    description="diagnosis"
     )
 
   old_creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
   new_creditpoints = int(old_creditpoints) + 1
   db.child("users").child(auth.current_user["localId"]).update({"creditpoints": new_creditpoints})
-  ##put a redirect in here where file is transmitted to /predict -> upload() so it must not be uploaded twice
-  return render_template("/image.html", creditpoints=new_creditpoints)
+
+  return redirect("/")
+
+@app.route("/payment", methods=["GET", "POST"])
+@isAuthenticated
+def payment():
+
+  payment = paypalrestsdk.Payment({
+    "intent": "sale",
+    "payer": {
+      "payment_method": "paypal"},
+    "redirect_urls": {
+      "return_url": "http://127.0.0.1:5000/payment/execute",
+      "cancel_url": "http://127.0.0.1:5000/"},
+    "transactions": [{
+      "item_list": {
+        "items": [{
+          "name": "diagnosis",
+          "sku": "11111",
+          "price": "16.97",
+          "currency": "EUR",
+          "quantity": 1}]},
+      "amount": {
+        "total": "16.97",
+        "currency": "EUR"},
+      "description": "This is the payment transaction description."}]})
+
+  if payment.create():
+    print('Payment success!')
+  else:
+    print("here")
+    print(payment.error)
+
+  return jsonify({'paymentID' : payment.id})
+
+@app.route('/execute', methods=["GET", 'POST'])
+@isAuthenticated
+def execute():
+  success = False
+
+  payment = paypalrestsdk.Payment.find(request.form['paymentID'])
+
+  if payment.execute({'payer_id' : request.form['payerID']}):
+    print('Execute success!')
+    success = True
+    old_creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
+    new_creditpoints = int(old_creditpoints) + 1
+    db.child("users").child(auth.current_user["localId"]).update({"creditpoints": new_creditpoints})
+  else:
+    print("there")
+    print(payment.error)
+
+  # return render_template("/image.html", creditpoints=new_creditpoints)
+  return jsonify({'success' : success})
+
 
 @app.route("/predict", methods=["GET", "POST"])
 def upload():
@@ -241,6 +316,9 @@ def upload():
       basepath = os.path.dirname(__file__)
       file_path = os.path.join(basepath, 'uploads', secure_filename(f.filename))
       f.save(file_path)
+      
+      file_place = "uploads/" + f.filename
+      storage.child(auth.current_user["localId"]).child("images").child(f.filename).put(file_place, auth.current_user["idToken"])
 
       # Make prediction
       preds = model_predict(file_path, model)
@@ -254,7 +332,7 @@ def upload():
       old_creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
       new_creditpoints = int(old_creditpoints) - 1
       db.child("users").child(auth.current_user["localId"]).update({"creditpoints": new_creditpoints})
-  
+      print(result)
       return result
     return None
 
