@@ -5,8 +5,10 @@
 	<title>CheckYourself</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
 	<title></title>
+
 	<link href="https://fonts.googleapis.com/css?family=Noto+Sans+HK&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/image.css') }}">
 
@@ -18,55 +20,49 @@
 <body>
  
 	<!-- include the nav -->
-    {% include "includes/_nav.html" %}
+        {% include "includes/_nav.html" %}
 
 
 	<header>
-	  
-	  	<img src="../static/assets/CheckYourself2.png"/>
-	 
+		<div class="wrapper">
+		<!-- <div class="image-container"></div> -->
+			<img src="../static/assets/CheckYourself3.PNG" class="image-container" alt="">
+		</div>
 	</header>
+
 	<div class="wrapper">
 		<h2 class="texts">Image Classifier</h2>
 	</div>
 	
 	<div>
-		<div class="wrapper">
-	    	<form id="upload-file" method="post" enctype="multipart/form-data">
-	        	<label for="imageUpload" class="upload-label">Choose a picture from your Computer</label>
-	        	<input type="file" name="image" id="imageUpload" accept=".png, .jpg, .jpeg">
-	        </form>
+    	{% if creditpoints == 0 %}
+	    <div class="wrapper">
+	    	<a style="text-decoration:none" class="upload-label" href="/">Get Creditpoints over the Homepage first!</a>
 	    </div>
+	{% endif %}
+        
+	{% if creditpoints > 0 %}
 
-	    <div class="image-section" style="display:none;">
-	        <div class="img-preview">
-	            <div id="imagePreview">
-	            </div>
-	        </div>
-	        <div class="wrapper">
+	<div class="wrapper">
+	    <form id="upload-file" method="post" enctype="multipart/form-data">
+	        <label for="imageUpload" class="upload-label">Choose an image from your Computer</label>
+	        <input type="file" name="image" id="imageUpload" accept=".png, .jpg, .jpeg">
+	    </form>
+	</div>
+    	
+    	<div class="image-section" style="display:none;">
 
-	        {% if not_paid_yet %}
-	        	<p>Pay only 16.97€ and get your Prediction!</p>
-	            <!-- <button type="button" class="btn-predict" id="btn-predict">Predict!</button> -->
-	            <form action="{{ url_for('pay') }}" method="POST">
-		            <script 
-		                src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-		                data-key="{{ pub_key }}"
-		                data-amount="999"
-		                data-name="Demo Payment"
-		                data-description="Widget"
-		                data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
-		                data-locale="auto">
-		            </script>
-		        </form>
-		    {% endif %}
-		    {% if creditpoints > 0 %}
-		    	<div class="wrapper">
-	    			<button type="button" name="btn-predict" style="display:none;" class="btn-predict" id="btn-predict">Predict!</button>
-	   			</div>
-		    {% endif %}
-	        </div>
-	    </div>
+	    <div class="img-preview">
+            <div id="imagePreview">
+            </div>
+        </div>
+
+        <div class="wrapper">
+	    	<div class="wrapper">
+    			<button type="button" name="btn-predict" style="display:none;" class="btn-predict" id="btn-predict">Predict!</button>
+   			</div>
+        </div>
+        {% endif %}
 
 	    <div class="loader" style="display:none;"></div>
 
@@ -77,8 +73,7 @@
 		</div>
 	</div>
 
-	<script src="{{ url_for('static', filename='js/image.js') }}" type="text/javascript"></script>
-	
+	<script src="{{ url_for('static', filename='js/image.js') }}" type="text/javascript"></script>	
 
 </body>
 </html>
