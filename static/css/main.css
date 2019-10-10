@@ -4,7 +4,7 @@ body{
     color: #222;
     font-family: "Noto Sans HK";
     position: relative;
-  
+    background-color: rgba(255, 181, 97, 0.3);
 }
 
 /* color values of checkyourself image 
@@ -13,12 +13,11 @@ body{
 nav{
     display: flex;
     justify-content: space-between;
-    background-color: rgba(255, 181, 97, 0.6);
     width: 100%;
     top: 0px;
     z-index: 99;
     font-size: 1rem;
-    
+    background-color: rgba(255, 181, 97, 0.3);
 }
 
 nav ul{
@@ -56,8 +55,8 @@ nav ul li .user-email {
     padding-right: 5%;
 }
 
-header img {
-    width: 100%;
+img {
+  width: 100%;
 }
 
 main {
@@ -77,60 +76,23 @@ form * {
 }
 
 form a, form textarea{
-    background: none;
+    background: rgba(255, 181, 97, 0);
     width: 100%;
     font-family: "Noto Sans HK";
     border: none;
     border-bottom: 1px solid #666;
     padding: 10px 0px;
     margin: 10px 0px;
-}
-
-form a[type="submit"] {
-    border: none;
-    width: 10%;
-    min-width: 120px;
-    background: #EECDA3;  /* fallback for old browsers */
-    background: -webkit-linear-gradient(to right, #EF629F, #EECDA3);  /* Chrome 10-25, Safari 5.1-6 */
-    background: linear-gradient(to right, #EF629F, #EECDA3); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-    -webkit-box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
-    box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #fff;
 }
 
 form input, form textarea{
-    background: none;
+    background: rgba(255, 181, 97, 0);
     width: 100%;
     font-family: "Noto Sans HK";
     border: none;
     border-bottom: 1px solid #666;
     padding: 10px 0px;
     margin: 10px 0px;
-}
-
-form input[type="submit"] {
-    border: none;
-    width: 10%;
-    min-width: 120px;
-    background: #EECDA3;  /* fallback for old browsers */
-    background: -webkit-linear-gradient(to right, #EF629F, #EECDA3);  /* Chrome 10-25, Safari 5.1-6 */
-    background: linear-gradient(to right, #EF629F, #EECDA3); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-    -webkit-box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
-    box-shadow: 0px 10px 12px -10px rgba(0,0,0,0.75);
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #fff;
-}
-input[type="submit"].delete {
-    margin-top: 150px;
-    background: none;
-    box-shadow: none;
-    color: #222;
-    border: 1px solid #222;
 }
 
 .error {
@@ -150,7 +112,6 @@ input[type="submit"].delete {
 
 .wrapper .btn-predict{
   position: center;
-  margin: 0px 25% 0px;
   padding: 12px 26px;
   background: #E0584B;
   color: #fff;
@@ -160,7 +121,47 @@ input[type="submit"].delete {
   border-radius: 10%;
 }
 
-.wrapper .´btn-predict:hover{
+.wrapper .btn-predict:hover{
   background: #DD4839;
   color: #F5F5F5;
+}
+
+.wrapper{
+  text-align: center;
+}
+
+.texts{
+  position: center;
+  color: #DD4839;
+}
+
+.paybutton{
+    position: center;
+    color: #DD4839;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.upload-label{
+  border: none;
+  width: 10%;
+  min-width: 150px;
+  background-color: #E0584B;
+  color: #ffffff !important;
+  font-weight: 100;
+  font-size: 1.1rem;
+  padding: 10px;
+  text-transform: uppercase;
+  border-radius: 6px;
+  display: inline-block;
+  transition: all 0.1s ease 0s;
+  cursor: pointer;
+}
+
+.upload-label:hover{
+  color: none;
+  font-weight: 400 !important;
+  letter-spacing: 1px;
+  background-color: #DD4839 !important;
+  transition: all 0.1s ease 0s;
 }
