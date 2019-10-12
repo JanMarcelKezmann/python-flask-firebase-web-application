@@ -77,5 +77,21 @@ Open http://localhost:5000 or http://127.0.0.1:5000 and have fun. :smiley:
   <img src="https://user-images.githubusercontent.com/50111329/66697537-c001a300-ecd6-11e9-810c-958e35f76d7a.png" width="800px" alt="">
 </p>
 
+## Testing Stripe & Paypal Payment
+
+<p>Pick the login E-Mail and type in the credentials shown in the picture below</p>
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/50111329/66700313-47f3a700-ecef-11e9-8594-287c22af06e0.png" width="400px" alt="">
+</p>
+
+<p>For testing Paypal payment a developer account is neccessary. Here is the test-e-mail and test-password I used:</p>
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/50111329/66700452-9b1a2980-ecf0-11e9-99da-0d5727137fb5.png" width="400px" alt="">
+</p>
+
+<p>E-Mail: sb-ychg6329905@personal.example.com | PW: J[0k$44M</p>
+
 ## References
 - <a href="https://www.isic-archive.com/#!/topWithHeader/tightContentTop/about/isicArchive">ISIC-Archive.com</a>
