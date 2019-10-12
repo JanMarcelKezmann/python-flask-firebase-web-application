@@ -8,6 +8,7 @@
 - Install requirements
 - Run the script
 - Check http://localhost:5000
+- Login with a test user account: E-Mail: test@test.com | PW: 12345678
 - Done! :tada:
 
 
