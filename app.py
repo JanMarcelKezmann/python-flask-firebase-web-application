@@ -17,9 +17,9 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR) # suppress keep_d
 
 # Keras
 from keras.applications.imagenet_utils import preprocess_input, decode_predictions
-from keras.models import load_model
+from keras.models import load_model, Sequential
 from keras.preprocessing import image
-from keras.applications.resnet50 import ResNet50
+from keras.layers import Conv2D, Dense, Flatten, MaxPooling2D
 
 # Flask
 from flask_dropzone import Dropzone
@@ -81,7 +81,14 @@ paypalrestsdk.configure({
 dropzone = Dropzone(app)
 
 # Initializing Model for image classification
-model = ResNet50(weights="imagenet")
+model = Sequential()
+model.add(Conv2D(32, (3, 3), activation = 'relu', padding = 'same', input_shape = (32, 32, 3)))
+model.add(MaxPooling2D(pool_size = (2, 2)))
+model.add(Flatten())
+model.add(Dense(128, activation = 'relu'))
+model.add(Dense(1, activation = 'sigmoid'))
+
+model.load_weights("ISIC Detection Model.h5")
 
 graph = tf.get_default_graph()
 
@@ -95,26 +102,19 @@ def isAuthenticated(f):
       return f(*args, **kwargs)
   return decorated_function
 
-# def isNotLoggedIn(f):
-#   @wraps(f)
-#   def decorated_function2(*args, **kwargs):
-#     if auth.current_user != None:
-#       return redirect("/", message="Log out to sign up with a new account")
-#     return f(*args, **kwargs)
-#   return decorated_function2
-
 def model_predict(img_path, model):
-  img = image.load_img(img_path, target_size=(224, 224))
+  img = image.load_img(img_path, target_size=(32, 32))
 
   # Preprocessing the image
   x = image.img_to_array(img)
   # x = np.true_divide(x, 255)
   x = np.expand_dims(x, axis=0)
-  # Be careful how your trained model deals with the input
-  # otherwise, it won't make correct prediction!
-  x = preprocess_input(x, mode='caffe')
 
   preds = model.predict(x)
+  if np.round(preds[0][0]).astype(int) == 0:
+    preds = "Benign"
+  else:
+    preds = "Malignant"
   return preds
 
 #index route / Main Page
@@ -128,8 +128,8 @@ def index():
     #       file_place = "uploads/" + f.filename
     #       storage.child(auth.current_user["localId"]).child("images").child(f.filename).put(file_place, auth.current_user["idToken"])
     session_username = db.child("users").child(auth.current_user["localId"]).child("username").get().val()
-    
-    return render_template("index.html", pub_key=pub_key, session_username=session_username)
+    creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
+    return render_template("index.html", pub_key=pub_key, session_username=session_username, creditpoints=creditpoints)
   return render_template("index.html", user_not_authenticated=True)
 #signup route
 @app.route("/signup", methods=["GET", "POST"])
@@ -193,7 +193,8 @@ def logout():
 @isAuthenticated
 def profile():
   user_data = db.child("users").child(auth.current_user["localId"]).get().val()
-  # Version 1
+  creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
+
   if request.method == "POST":
     #get the request form data
     # email = request.form["email"]
@@ -220,8 +221,8 @@ def profile():
 
     # next line could in theory be forgotten
     user_data = db.child("users").child(auth.current_user["localId"]).get().val()
-    return render_template("profile.html", user_infos=user_data, session_username=username)
-  return render_template("profile.html", user_infos=user_data, session_username=user_data["username"])
+    return render_template("profile.html", user_infos=user_data, session_username=username, creditpoints=creditpoints)
+  return render_template("profile.html", user_infos=user_data, session_username=user_data["username"], creditpoints=creditpoints)
 
 @app.route("/imageclassification", methods=["GET", "POST"])
 @isAuthenticated
@@ -323,17 +324,12 @@ def upload():
       # Make prediction
       preds = model_predict(file_path, model)
 
-      # Process your result for human
-      # pred_class = preds.argmax(axis=-1)            # Simple argmax
-      pred_class = decode_predictions(preds, top=1)   # ImageNet Decode
-      result = str(pred_class[0][0][1])               # Convert to string
-      
       # subtract one creditpoint
       old_creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
       new_creditpoints = int(old_creditpoints) - 1
       db.child("users").child(auth.current_user["localId"]).update({"creditpoints": new_creditpoints})
-      print(result)
-      return result
+      
+      return preds
     return None
 
 #run the main script
