@@ -131,6 +131,7 @@ def index():
     creditpoints = db.child("users").child(auth.current_user["localId"]).child("creditpoints").get().val()
     return render_template("index.html", pub_key=pub_key, session_username=session_username, creditpoints=creditpoints)
   return render_template("index.html", user_not_authenticated=True)
+
 #signup route
 @app.route("/signup", methods=["GET", "POST"])
 # @isNotLoggedIn
@@ -150,6 +151,9 @@ def signup():
       user_email = email
       session['usr'] = user_id
       session["email"] = user_email
+      
+      user_data = {"firstname": "", "lastname": "", "username": username, "creditpoints": 1}
+      db.child("users").child(auth.current_user["localId"]).update(user_data)
 
       return redirect("/") 
     except:
